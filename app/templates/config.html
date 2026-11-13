@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block corpo %}
+<h1>Configurações</h1>
+<p class="sub">Tudo que o assistente diz sobre preços, descontos e regras vem daqui. Alterou, vale na próxima mensagem.</p>
+
+<h2>Preços por hora</h2>
+<div class="card scroll"><table>
+  <tr><th>Descrição</th><th>Dias</th><th>Faixa</th><th>Valor/hora</th><th></th></tr>
+  {% for p in precos %}<tr><td>{{ p.descricao }}</td>
+    <td>{% for d in p.dias.split(',') if d != '' %}{{ dias[d|int][:3] }}{{ ', ' if not loop.last }}{% endfor %}</td>
+    <td>{{ '%02d'|format(p.hora_ini) }}h–{{ '%02d'|format(p.hora_fim) }}h</td><td>{{ p.valor_hora|brl }}</td>
+    <td><form method="post" action="/config/precos/{{ p.id }}/excluir" onsubmit="return confirm('Remover este preço?')"><button class="sec">Remover</button></form></td></tr>{% endfor %}
+</table>
+<form method="post" action="/config/precos/novo">
+  <div class="row">
+    <div><label>Descrição</label><input type="text" name="descricao" style="width:100%" placeholder="Ex.: Sábado à noite"></div>
+    <div><label>Das (hora)</label><input type="number" name="hora_ini" min="0" max="23" value="8"></div>
+    <div><label>Até (hora)</label><input type="number" name="hora_fim" min="1" max="24" value="24"></div>
+    <div><label>Valor/hora (R$)</label><input type="text" name="valor_hora" value="100,00"></div>
+  </div>
+  <label>Dias</label>
+  {% for d in dias %}<label style="display:inline-block; margin-right:10px; color:var(--tx)"><input type="checkbox" name="dias" value="{{ loop.index0 }}"> {{ d }}</label>{% endfor %}
+  <p><button>Adicionar preço</button> <small>Se duas faixas se cruzarem, vale a primeira da lista.</small></p>
+</form></div>
+
+<h2>Descontos e cupons</h2>
+<div class="card scroll"><table>
+  <tr><th>Nome</th><th>Regra</th><th>Cupom</th><th>Situação</th><th></th></tr>
+  {% for d in descontos %}<tr><td>{{ d.nome }}</td>
+    <td>{% if d.tipo == 'percentual' %}{{ d.valor|round(1) }}%{% else %}{{ d.valor|brl }} por hora{% endif %} a partir de {{ d.min_horas }}h</td>
+    <td>{{ d.codigo or 'automático' }}</td><td><span class="tag {{ 'ok' if d.ativo else '' }}">{{ 'ativo' if d.ativo else 'desligado' }}</span></td>
+    <td style="white-space:nowrap">
+      <form method="post" action="/config/descontos/{{ d.id }}/alternar" style="display:inline"><button class="sec">{{ 'Desligar' if d.ativo else 'Ligar' }}</button></form>
+      <form method="post" action="/config/descontos/{{ d.id }}/excluir" style="display:inline" onsubmit="return confirm('Remover este desconto?')"><button class="sec">Remover</button></form></td></tr>{% endfor %}
+</table>
+<form method="post" action="/config/descontos/novo">
+  <div class="row">
+    <div><label>Nome (o cliente vê)</label><input type="text" name="nome" required style="width:100%" placeholder="Ex.: Segunda-feira: 15% off"></div>
+    <div><label>Tipo</label><select name="tipo"><option value="percentual">% sobre o total</option><option value="fixo">R$ por hora</option></select></div>
+    <div><label>Valor</label><input type="text" name="valor" value="10"></div>
+    <div><label>A partir de (horas)</label><input type="number" name="min_horas" min="1" value="1"></div>
+    <div><label>Cupom (vazio = automático)</label><input type="text" name="codigo"></div>
+  </div>
+  <p><button>Adicionar desconto</button> <small>Quando mais de um se aplica, vale o maior (não acumulam).</small></p>
+</form></div>
+
+<h2>Quadras</h2>
+<div class="card"><table>
+  {% for q in quadras %}<tr><td>{{ q.nome }}</td><td><span class="tag {{ 'ok' if q.ativa else '' }}">{{ 'ativa' if q.ativa else 'desativada' }}</span></td>
+    <td><form method="post" action="/config/quadras/{{ q.id }}/alternar"><button class="sec">{{ 'Desativar' if q.ativa else 'Ativar' }}</button></form></td></tr>{% endfor %}
+</table>
+<form method="post" action="/config/quadras/nova" class="row" style="margin-top:10px"><div><label>Nova quadra</label><input type="text" name="nome" required></div><div style="flex:0"><button>Adicionar</button></div></form></div>
+
+<h2>Empresa, horários e textos</h2>
+<form method="post" action="/config/salvar" class="card">
+  <div class="row">
+    <div><label>Nome do local</label><input type="text" name="empresa_nome" value="{{ cfg.empresa_nome }}" style="width:100%"></div>
+    <div><label>Abre às (hora)</label><input type="number" name="abertura" min="0" max="23" value="{{ cfg.abertura }}"></div>
+    <div><label>Última hora de início</label><input type="number" name="fechamento_hora" min="0" max="23" value="{{ cfg.fechamento_hora }}"></div>
+    <div><label>Agenda até (dias)</label><input type="number" name="antecedencia_max_dias" min="1" value="{{ cfg.antecedencia_max_dias }}"></div>
+  </div>
+  <div class="row">
+    <div><label>Nome do sócio</label><input type="text" name="dono_nome" value="{{ cfg.dono_nome }}" style="width:100%"></div>
+    <div><label>WhatsApp do sócio (com 55 e DDD)</label><input type="text" name="dono_telefone" value="{{ cfg.dono_telefone }}"></div>
+    <div><label>E-mail do sócio (lembretes)</label><input type="email" name="dono_email" value="{{ cfg.dono_email }}" style="width:100%"></div>
+  </div>
+  <label>Endereço</label><input type="text" name="endereco" value="{{ cfg.endereco }}" style="width:100%">
+  <label>Descrição do serviço na nota fiscal</label><input type="text" name="descricao_servico" value="{{ cfg.descricao_servico }}" style="width:100%">
+  <label>Política de cancelamento</label><textarea name="politica_cancelamento" rows="2">{{ cfg.politica_cancelamento }}</textarea>
+  <label>Política de pagamento</label><textarea name="politica_pagamento" rows="2">{{ cfg.politica_pagamento }}</textarea>
+  <label>Outras informações para o assistente</label><textarea name="faq_extra" rows="3">{{ cfg.faq_extra }}</textarea>
+  <label>Aviso de privacidade (ao pedir o CPF)</label><textarea name="aviso_lgpd" rows="2">{{ cfg.aviso_lgpd }}</textarea>
+  <p><button>Salvar</button></p>
+</form>
+{% endblock %}

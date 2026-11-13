@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block corpo %}
+<h1>Notas fiscais</h1>
+<p class="sub">Ambiente atual: <b>{{ emissor }}</b>{% if emissor == 'simulado' %} — as notas abaixo são simulações, <b>sem valor fiscal</b>{% endif %}.</p>
+<div class="row" style="margin-bottom:8px">
+  <a class="btn" href="/notas/exportar.xlsx">Baixar planilha das locações confirmadas</a>
+  <form method="post" action="/fechamento/reemitir"><button class="sec">Tentar de novo as notas com erro</button></form>
+</div>
+<div class="card scroll"><table>
+  <tr><th>Nota</th><th>Locação</th><th>Tomador</th><th>CPF</th><th>Valor</th><th>Emitida em</th><th>Situação</th></tr>
+  {% for n in notas %}<tr><td>{{ n.numero or '—' }}</td><td>{{ n.data|dataf }}<br><small>{{ n.quadra }}, {{ '%02d'|format(n.hora_ini) }}h</small></td>
+    <td>{{ n.nome }}</td><td>{{ n.cpf|cpf }}</td><td>{{ n.valor|brl }}</td><td>{{ n.emitida_em[:16].replace('T',' ') }}</td>
+    <td><span class="tag {{ 'ok' if n.status == 'emitida' else 'err' }}">{{ n.status }}</span>{% if n.erro %}<br><small>{{ n.erro }}</small>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="7" class="mut">Nenhuma nota ainda.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

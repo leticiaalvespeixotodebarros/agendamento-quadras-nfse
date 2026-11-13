@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block corpo %}
+<h1>Agenda</h1>
+<div class="row" style="align-items:center">
+  <a class="btn" href="/agenda?data={{ ant }}">&larr;</a>
+  <form method="get" style="display:flex; gap:8px"><input type="date" name="data" value="{{ d.isoformat() }}"><button class="sec">Ir</button></form>
+  <a class="btn" href="/agenda?data={{ prox }}">&rarr;</a>
+  <b>{{ d.isoformat()|dataf }}</b>
+</div>
+<div class="card scroll">
+<table>
+  <tr><th>Horário</th><th>Quadra</th><th>Cliente</th><th>CPF</th><th>Valor</th><th>Situação</th><th></th></tr>
+  {% for a in ags %}
+  <tr>
+    <td>{{ '%02d'|format(a.hora_ini) }}h–{{ '%02d'|format(a.hora_fim) }}h</td><td>{{ a.quadra }}</td>
+    <td>{{ a.nome }}<br><small>{{ a.telefone }} · {{ a.origem }}</small></td><td>{{ a.cpf|cpf }}</td>
+    <td>{{ a.valor|brl }}{% if a.desconto %}<br><small>{{ a.desconto_nome }}</small>{% endif %}</td>
+    <td><span class="tag {{ 'ok' if a.status in ('confirmado',) else 'err' if a.status in ('cancelado','nao_realizado') else '' }}">{{ a.status|replace('_',' ') }}</span></td>
+    <td>{% if a.status == 'agendado' %}<form method="post" action="/agenda/{{ a.id }}/cancelar" onsubmit="return confirm('Cancelar esta reserva?')"><button class="sec">Cancelar</button></form>{% endif %}</td>
+  </tr>
+  {% else %}<tr><td colspan="7" class="mut">Nenhuma reserva neste dia.</td></tr>{% endfor %}
+</table></div>
+
+<h2>Lançar reserva manualmente</h2>
+<p class="sub">Para quem agenda por telefone ou pessoalmente: o CPF também fica guardado para a nota.</p>
+<form method="post" action="/agenda/novo" class="card">
+  <input type="hidden" name="data" value="{{ d.isoformat() }}">
+  <div class="row">
+    <div><label>Quadra</label><select name="quadra_id">{% for q in quadras %}<option value="{{ q.id }}">{{ q.nome }}</option>{% endfor %}</select></div>
+    <div><label>Hora de início</label><input type="number" name="hora" min="0" max="23" value="19"></div>
+    <div><label>Horas</label><input type="number" name="horas" min="1" max="6" value="1"></div>
+  </div>
+  <div class="row">
+    <div><label>Nome completo</label><input type="text" name="nome" required style="width:100%"></div>
+    <div><label>CPF</label><input type="text" name="cpf" required></div>
+    <div><label>Telefone (opcional)</label><input type="text" name="telefone"></div>
+  </div>
+  <p><button>Reservar</button></p>
+</form>
+{% endblock %}

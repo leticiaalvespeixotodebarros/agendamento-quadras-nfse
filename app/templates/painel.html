@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block corpo %}
+<h1>Painel</h1>
+<p class="sub">Resumo do dia. Da conversa no WhatsApp à nota fiscal, sem digitar dados duas vezes.</p>
+<div class="grid">
+  <div class="card"><div class="num">{{ resumo.hoje }}</div><div class="lbl">locações hoje</div></div>
+  <div class="card"><div class="num">{{ resumo.futuros }}</div><div class="lbl">agendadas à frente</div></div>
+  <div class="card"><div class="num">{{ resumo.pendentes }}</div><div class="lbl">aguardando confirmação</div></div>
+  <div class="card"><div class="num">{{ resumo.notas }}</div><div class="lbl">notas emitidas</div></div>
+  <div class="card"><div class="num">{{ resumo.humano }}</div><div class="lbl">conversas com atendente</div></div>
+</div>
+{% if resumo.pendentes %}<div class="card">Há <b>{{ resumo.pendentes }}</b> locação(ões) já realizadas esperando a confirmação do sócio.
+  <a class="btn" href="/fechamento">Abrir fechamento</a></div>{% endif %}
+{% if resumo.erros %}<div class="card aviso"><b>{{ resumo.erros }}</b> nota(s) com erro na emissão. <a href="/notas">Ver</a></div>{% endif %}
+{% endblock %}

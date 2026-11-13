@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block corpo %}
+<h1>Atendimento</h1>
+<p class="sub">Conversas em que o cliente pediu uma pessoa aparecem no topo. Ao responder aqui, o assistente para de responder nessa conversa até você devolver.</p>
+<div style="display:grid; grid-template-columns:minmax(200px,300px) 1fr; gap:14px">
+  <div class="card" style="margin:0; padding:6px">
+    {% for c in convs %}<a href="/inbox?tel={{ c.telefone }}" style="display:block; padding:8px; border-radius:8px; text-decoration:none; color:var(--tx); {{ 'background:var(--bg);' if c.telefone == tel }}">
+      <b>{{ c.telefone }}</b> {% if c.modo == 'humano' %}<span class="tag warn">atendente</span>{% endif %}<br><small>{{ (c.ultima or '')[:60] }}</small></a>
+    {% else %}<p class="mut" style="padding:8px">Nenhuma conversa ainda.</p>{% endfor %}
+  </div>
+  <div class="card" style="margin:0">
+    {% if atual %}
+      <div class="row" style="align-items:center"><b>{{ tel }}</b>
+        {% if atual.modo == 'humano' %}<span class="tag warn">com atendente{% if atual.motivo %}: {{ atual.motivo }}{% endif %}</span>
+        <form method="post" action="/inbox/{{ tel }}/devolver"><button class="sec">Devolver ao assistente</button></form>{% else %}<span class="tag ok">assistente atendendo</span>{% endif %}</div>
+      <div style="max-height:380px; overflow-y:auto; margin:10px 0; display:flex; flex-direction:column; gap:6px">
+        {% for m in msgs %}<div style="align-self:{{ 'flex-start' if m.autor == 'cliente' else 'flex-end' }}; background:var(--bg); border:1px solid var(--brd); padding:6px 10px; border-radius:8px; max-width:80%; white-space:pre-wrap"><small>{{ m.autor }}</small><br>{{ m.texto }}</div>{% endfor %}
+      </div>
+      <form method="post" action="/inbox/{{ tel }}/responder" class="row" style="flex-wrap:nowrap">
+        <input type="text" name="texto" placeholder="Responder como atendente" style="flex:1" autocomplete="off" required><button>Enviar</button></form>
+    {% else %}<p class="mut">Selecione uma conversa.</p>{% endif %}
+  </div>
+</div>
+{% endblock %}

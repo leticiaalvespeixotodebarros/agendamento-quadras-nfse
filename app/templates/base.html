@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ cfg.empresa_nome }} – Painel</title>
+<style>
+  :root { --bg:#f5f7f6; --card:#fff; --tx:#1d2b26; --mut:#62736c; --brd:#dde5e1; --pri:#0f7b5f; --pri2:#0b5c47; --warn:#b45309; --err:#b91c1c; --ok:#047857; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#12181a; --card:#1b2427; --tx:#e6efec; --mut:#9bb0a8; --brd:#2c3a3e; --pri:#2bb58f; --pri2:#3fd0a7; } }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif; background:var(--bg); color:var(--tx); }
+  header { background:var(--card); border-bottom:1px solid var(--brd); padding:0 16px; display:flex; gap:4px; align-items:center; flex-wrap:wrap; }
+  header b { padding:14px 12px 14px 0; color:var(--pri); }
+  header a { color:var(--mut); text-decoration:none; padding:14px 10px; border-bottom:3px solid transparent; }
+  header a.on, header a:hover { color:var(--tx); border-bottom-color:var(--pri); }
+  main { max-width:1000px; margin:0 auto; padding:20px 16px 60px; }
+  h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:17px; margin:26px 0 8px; }
+  p.sub { color:var(--mut); margin:0 0 16px; }
+  .card { background:var(--card); border:1px solid var(--brd); border-radius:10px; padding:16px; margin:12px 0; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+  .num { font-size:28px; font-weight:700; color:var(--pri); } .lbl { color:var(--mut); font-size:13px; }
+  table { width:100%; border-collapse:collapse; } th,td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--brd); vertical-align:top; }
+  th { color:var(--mut); font-weight:600; font-size:13px; } .scroll { overflow-x:auto; }
+  input,select,textarea,button { font:inherit; padding:8px 10px; border:1px solid var(--brd); border-radius:8px; background:var(--card); color:var(--tx); }
+  textarea { width:100%; } input[type=text],input[type=number],input[type=date],input[type=email] { max-width:100%; }
+  button, .btn { background:var(--pri); color:#fff; border:0; cursor:pointer; text-decoration:none; display:inline-block; border-radius:8px; padding:8px 14px; }
+  button:hover,.btn:hover { background:var(--pri2); } button.sec { background:transparent; color:var(--tx); border:1px solid var(--brd); }
+  button.perigo { background:var(--err); } label { display:block; font-size:13px; color:var(--mut); margin:8px 0 2px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:end; } .row > div { flex:1; min-width:140px; }
+  .msg { background:#e7f6ef; color:#064e3b; border:1px solid #a7e3c9; padding:10px 14px; border-radius:8px; margin:12px 0; }
+  @media (prefers-color-scheme: dark) { .msg { background:#12332a; color:#bdf0dc; border-color:#1f5a46; } }
+  .tag { display:inline-block; font-size:12px; padding:1px 8px; border-radius:99px; border:1px solid var(--brd); color:var(--mut); }
+  .tag.ok { color:var(--ok); border-color:var(--ok); } .tag.err { color:var(--err); border-color:var(--err); } .tag.warn { color:var(--warn); border-color:var(--warn); }
+  .aviso { color:var(--warn); } .mut { color:var(--mut); } small { color:var(--mut); }
+  .faixa { background:#fff7e6; color:#7c4a03; padding:6px 16px; font-size:13px; border-bottom:1px solid #f3d9a4; }
+  @media (prefers-color-scheme: dark) { .faixa { background:#3a2c10; color:#f5d99a; border-color:#5b4519; } }
+</style>
+</head>
+<body>
+{% set aba = request.url.path %}
+{% if not ia or emissor == 'simulado' or not wa_real %}
+<div class="faixa">Modo demonstração:
+  {% if not ia %}conversa por roteiro (sem IA) · {% endif %}
+  {% if not wa_real %}WhatsApp simulado · {% endif %}
+  {% if emissor == 'simulado' %}notas SIMULADAS (sem valor fiscal){% endif %}</div>
+{% endif %}
+<header>
+  <b>{{ cfg.empresa_nome }}</b>
+  <a href="/" class="{{ 'on' if aba == '/' }}">Painel</a>
+  <a href="/agenda" class="{{ 'on' if aba.startswith('/agenda') }}">Agenda</a>
+  <a href="/fechamento" class="{{ 'on' if aba.startswith('/fechamento') }}">Fechamento</a>
+  <a href="/notas" class="{{ 'on' if aba.startswith('/notas') }}">Notas</a>
+  <a href="/inbox" class="{{ 'on' if aba.startswith('/inbox') }}">Atendimento</a>
+  <a href="/config" class="{{ 'on' if aba.startswith('/config') }}">Configurações</a>
+  <a href="/simulador" class="{{ 'on' if aba.startswith('/simulador') }}">Simulador WhatsApp</a>
+</header>
+<main>
+{% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
+{% block corpo %}{% endblock %}
+</main>
+</body>
+</html>

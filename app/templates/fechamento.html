@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block corpo %}
+<h1>Fechamento</h1>
+<p class="sub">Confirme só o que realmente aconteceu e foi pago. As notas fiscais são emitidas para as locações confirmadas, com a data de hoje.</p>
+{% if its %}
+{% if aviso %}<div class="card aviso">{{ aviso }}</div>{% endif %}
+<form method="post" action="/fechamento/concluir" class="card scroll">
+  <input type="hidden" name="fid" value="{{ fid }}">
+  <table>
+    <tr><th>Nº</th><th>Data</th><th>Horário</th><th>Quadra</th><th>Cliente</th><th>CPF</th><th>Valor</th><th>Não houve / dado errado</th></tr>
+    {% for i in its %}<tr><td>{{ i.numero }}</td><td>{{ i.data|dataf }}</td><td>{{ '%02d'|format(i.hora_ini) }}h–{{ '%02d'|format(i.hora_fim) }}h</td>
+      <td>{{ i.quadra }}</td><td>{{ i.nome }}</td><td>{{ i.cpf|cpf }}</td><td>{{ i.valor|brl }}</td>
+      <td><input type="checkbox" name="excluir" value="{{ i.numero }}" style="width:18px;height:18px"></td></tr>{% endfor %}
+  </table>
+  <p>Marque apenas as que <b>não</b> devem receber nota. As demais serão confirmadas.</p>
+  <button onclick="return confirm('Confirmar as locações não marcadas e emitir as notas?')">Confirmar e emitir notas</button>
+</form>
+{% else %}<div class="card">Nada pendente de confirmação. ✅</div>{% endif %}
+<h2>Lembrete por e-mail</h2>
+<form method="post" action="/fechamento/lembrete" class="card">
+  <p class="mut">O sistema envia um e-mail semanal ao sócio quando há locações a confirmar. Para testar agora:</p>
+  <button class="sec">Enviar lembrete agora</button>
+</form>
+{% endblock %}

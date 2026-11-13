@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block corpo %}
+<h1>Simulador de WhatsApp</h1>
+<p class="sub">Funciona exatamente como o número do local: a mensagem passa pelo mesmo código que receberá o WhatsApp real.</p>
+<div class="card">
+  <div class="row">
+    <div><label>Telefone de quem escreve</label><input id="tel" type="text" value="5511999990001"></div>
+    <div style="flex:0"><button class="sec" onclick="document.getElementById('tel').value='{{ dono }}';carregar()">Entrar como sócio</button></div>
+    <div style="flex:0"><button class="sec" onclick="document.getElementById('tel').value='5511999990001';carregar()">Entrar como cliente</button></div>
+  </div>
+</div>
+<div class="card" style="max-width:480px">
+  <div id="chat" style="height:420px; overflow-y:auto; background:#e5ddd5; border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px; color:#111"></div>
+  <form id="f" class="row" style="margin-top:10px; flex-wrap:nowrap" onsubmit="enviar(event)">
+    <input id="texto" type="text" placeholder="Escreva uma mensagem" autocomplete="off" style="flex:1">
+    <button>Enviar</button>
+  </form>
+  <small>Dica: o sócio pede o fechamento escrevendo “fechamento”.</small>
+</div>
+<script>
+const chat = document.getElementById('chat'), tel = document.getElementById('tel');
+function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function render(ms){
+  chat.innerHTML = ms.map(m=>{
+    const meu = m.autor==='cliente';
+    const bg = meu ? '#d9fdd3' : (m.autor==='humano' ? '#fff3c4' : '#fff');
+    const quem = m.autor==='humano' ? '<small>atendente</small><br>' : '';
+    return `<div style="align-self:${meu?'flex-end':'flex-start'};background:${bg};padding:6px 10px;border-radius:8px;max-width:85%;white-space:pre-wrap">${quem}${esc(m.texto).replace(/\*(.+?)\*/g,'<b>$1</b>')}</div>`;
+  }).join('');
+  chat.scrollTop = chat.scrollHeight;
+}
+async function carregar(){
+  const r = await fetch('/simulador/mensagens?telefone='+encodeURIComponent(tel.value)); render(await r.json());
+}
+async function enviar(e){
+  e.preventDefault(); const t = document.getElementById('texto'); if(!t.value.trim()) return;
+  const body = new URLSearchParams({telefone: tel.value, texto: t.value}); t.value='';
+  await fetch('/simulador/enviar', {method:'POST', body}); carregar();
+}
+tel.addEventListener('change', carregar); carregar(); setInterval(carregar, 4000);
+</script>
+{% endblock %}
