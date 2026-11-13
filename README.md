@@ -70,3 +70,7 @@ Variáveis opcionais em [.env.example](.env.example): `ANTHROPIC_API_KEY` (IA), 
 ## Stack
 
 Python · FastAPI · SQLite · Jinja2 · Anthropic API (tool use) · WhatsApp Cloud API · pytest
+
+## Licença
+
+[MIT](LICENSE) — uso livre, mantendo o aviso de copyright.
