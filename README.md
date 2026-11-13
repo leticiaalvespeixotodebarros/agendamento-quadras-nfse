@@ -73,4 +73,4 @@ Python · FastAPI · SQLite · Jinja2 · Anthropic API (tool use) · WhatsApp Cl
 
 ## Licença
 
-[MIT](LICENSE) — uso livre, mantendo o aviso de copyright.
+Todos os direitos reservados ([LICENSE](LICENSE)). O código está publicado apenas para visualização e avaliação; não pode ser copiado, usado ou vendido sem autorização por escrito da autora.
