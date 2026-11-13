@@ -1,7 +1,7 @@
-"""Módulo fiscal. O resto do sistema só conhece a interface `Emissor`; trocar o emissor não afeta mais nada.
+"""Tax module. The rest of the system only knows the `Emissor` interface; swapping the issuer affects nothing else.
 
-MVP: `EmissorSimulado` (sem valor fiscal) e `exportar_planilha` (gera a planilha no formato do emissor
-um emissor de NFS-e em lote). Produção: um emissor que chame o Emissor Nacional (Sefin Nacional).
+MVP: `EmissorSimulado` (no tax value) and a spreadsheet export for a batch invoice issuer (`planilha.exportar`).
+Production: an issuer that calls Brazil's national NFS-e system (Sefin Nacional).
 """
 import os
 

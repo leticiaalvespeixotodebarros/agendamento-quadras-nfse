@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-os.environ.pop("ANTHROPIC_API_KEY", None)        # testes sempre usam o roteiro (sem IA, sem custo)
+os.environ.pop("ANTHROPIC_API_KEY", None)        # tests always use the menu script (no AI, no cost)
 os.environ.pop("WHATSAPP_TOKEN", None)
 os.environ.pop("ADMIN_PASSWORD", None)
 

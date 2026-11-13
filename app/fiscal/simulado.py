@@ -1,5 +1,5 @@
-"""Emissor SIMULADO para a demonstração. NÃO gera documento fiscal: numeração e chave são marcadas como
-simulação e nunca se parecem com uma NFS-e real."""
+"""SIMULATED issuer for the demo. It does NOT produce a tax document: numbering and key are marked as
+simulation and never look like a real NFS-e."""
 from __future__ import annotations
 
 from .. import db

@@ -1,4 +1,4 @@
-"""Armazenamento de conversas, modo bot/humano e roteamento de cada mensagem recebida."""
+"""Conversation storage, bot/human mode, and routing of each incoming message."""
 from __future__ import annotations
 
 import json
@@ -66,15 +66,15 @@ def lista_conversas() -> list[dict]:
 
 
 def responder_humano(telefone: str, texto: str) -> None:
-    """Resposta do atendente pelo painel; sai pelo mesmo número do local."""
+    """Reply from the human agent via the dashboard; it goes out through the same business number."""
     from . import whatsapp
     registrar(telefone, "humano", texto)
     whatsapp.enviar(telefone, texto)
 
 
-# ---------- roteamento ----------
+# ---------- routing ----------
 def processar(telefone: str, texto: str) -> list[str]:
-    """Trata uma mensagem recebida e devolve as respostas já enviadas (e gravadas)."""
+    """Handle an incoming message and return the replies already sent (and stored)."""
     from . import agente, whatsapp
     tel = regras.so_digitos(telefone)
     texto = (texto or "").strip()
@@ -89,7 +89,7 @@ def processar(telefone: str, texto: str) -> list[str]:
         if r is not None:
             respostas = [r]
     if not respostas and modo(tel) == "humano":
-        return []                                   # o atendente assumiu: o bot não responde
+        return []                                   # a human took over: the bot stays silent
     if not respostas:
         respostas = agente.responder(tel, texto)
     for r in respostas:
@@ -99,7 +99,7 @@ def processar(telefone: str, texto: str) -> list[str]:
 
 
 def _fluxo_dono(tel: str, texto: str) -> str | None:
-    """Comandos do dono: pedir o fechamento e responder a lista. Devolve None se não for assunto de fechamento."""
+    """Owner commands: request the closing and answer the list. Returns None if it is not about the closing."""
     from . import fechamento
     t = texto.lower()
     est = estado(tel)
@@ -120,7 +120,7 @@ def _fluxo_dono(tel: str, texto: str) -> str | None:
         except fechamento.ErroResposta as e:
             if any(w in t for w in ("ok", "concordo", "confirmo", "menos", "exceto")):
                 return str(e)
-            return None                              # conversa comum; segue para o agente
+            return None                              # ordinary chat; goes on to the agent
         res = fechamento.concluir(fid, excl)
         salvar_estado(tel, {k: v for k, v in estado(tel).items() if k != "fechamento"})
         return res.texto()

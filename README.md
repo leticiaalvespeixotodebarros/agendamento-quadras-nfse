@@ -1,76 +1,100 @@
-# Agendamento de quadras por WhatsApp + emissão de NFS-e
+# WhatsApp court booking + Brazilian NFS-e invoicing
 
-Protótipo (MVP) para locadoras de quadras esportivas: o cliente agenda conversando no WhatsApp, o sistema já coleta
-os dados exigidos para a nota fiscal de serviço (nome e CPF), e o dono confirma periodicamente o que realmente aconteceu.
-Só depois dessa confirmação as notas são emitidas.
+[Leia em português](README.pt-BR.md)
 
-> **Projeto de demonstração.** Todos os dados (empresa, preços, nomes, CPFs, telefones) são fictícios. A emissão fiscal é
-> simulada e não tem valor fiscal.
+A prototype (MVP) for sports-court rental businesses. Customers book a court by chatting on WhatsApp, the system collects
+the data that Brazilian service invoices require (name and CPF) during the booking, and the owner periodically confirms
+which rentals really happened. Invoices are issued only after that confirmation.
 
-## O problema
+> **Demo project.** All data (business, prices, names, CPFs, phone numbers) is fictitious. Invoice issuing is simulated
+> and has no tax value.
 
-Em negócios de locação por hora, o cliente combina tudo no WhatsApp e ninguém registra o CPF de quem alugou. No fim do mês a
-contabilidade não consegue emitir as notas, porque falta o dado do tomador.
+## The problem
 
-## A solução
+In pay-per-hour rental businesses, customers arrange everything on WhatsApp and nobody records who rented the court.
+At the end of the month the accountant cannot issue the invoices, because the customer's tax ID is missing.
+
+## The solution
 
 ```
-Cliente ─ WhatsApp ─► Webhook (FastAPI) ─► Agente (IA com ferramentas) ─► Regras (agenda, preço, CPF)
-                                                    │                          │
-                    Painel do dono/atendente ◄──────┴──────── SQLite ◄─────────┘
-                                                    │
-                 Fechamento semanal (lista numerada) ─► Emissor fiscal (interface plugável)
+Customer ─ WhatsApp ─► Webhook (FastAPI) ─► Agent (AI with tools) ─► Rules (schedule, price, CPF)
+                                                   │                          │
+                  Owner/agent dashboard ◄──────────┴──────── SQLite ◄─────────┘
+                                                   │
+                 Weekly closing (numbered list) ─► Invoice issuer (pluggable interface)
 ```
 
-- **Conversa no WhatsApp** (Claude com *tool use*): consulta horários, calcula preço e descontos, coleta nome e CPF (validado
-  pelo dígito verificador) e cria a reserva. A IA **não** calcula preço nem decide disponibilidade: ela chama funções determinísticas.
-- **Plano B sem IA:** roteiro guiado por menu, usado quando não há chave da API e nos testes.
-- **Painel web:** agenda, preços/descontos/quadras/textos editáveis sem programador, fechamento, notas e caixa de atendimento.
-- **Atendimento humano no mesmo número:** o cliente pede uma pessoa, o bot silencia, o atendente responde pelo painel e devolve.
-- **Fechamento:** lista numerada das locações realizadas; o dono responde `OK` ou `OK menos 3 e 7` (por WhatsApp ou painel).
-  Emissão em lote que **não para** quando uma nota falha: ela é pulada, registrada e pode ser retentada.
-- **Lembrete semanal por e-mail** ao dono quando há locações a confirmar.
-- **Módulo fiscal desacoplado** (`Emissor`): hoje simulado + exportação de planilha em lote; o emissor real entra sem mexer no resto.
+- **WhatsApp conversation** (Claude with *tool use*): checks availability, calculates prices and discounts, collects the
+  customer's name and CPF (validated with the check digits), and creates the booking. The AI **never** calculates prices or
+  decides availability: it calls deterministic functions.
+- **No-AI fallback:** a menu-guided script, used when there is no API key and in the tests.
+- **Web dashboard:** schedule, prices/discounts/courts/texts editable without a developer, closing, invoices and an inbox.
+- **Human takeover on the same number:** the customer asks for a person, the bot goes silent, the agent replies from the
+  dashboard and hands the chat back.
+- **Closing:** a numbered list of the rentals that already happened. The owner answers `OK` or `OK menos 3 e 7`
+  ("OK except 3 and 7"), by WhatsApp or in the dashboard. Batch issuing **does not stop** when one invoice fails: it is
+  skipped, logged and can be retried.
+- **Weekly e-mail reminder** to the owner when there are rentals to confirm.
+- **Decoupled tax module** (`Emissor` interface): today a simulated issuer plus a spreadsheet export; the real issuer plugs
+  in without touching the rest.
 
-## Como rodar
+## Brazilian terms used in this project
+
+| Term | Meaning |
+|---|---|
+| **CPF** | Brazilian individual taxpayer ID (11 digits, the last two are check digits). |
+| **CNPJ** | Brazilian company taxpayer ID. |
+| **NFS-e** | *Nota Fiscal de Serviço eletrônica*: the electronic invoice for services. Brazilian businesses must issue one for each service sold. |
+| **Emissor Nacional** | The national NFS-e issuing system (replacing city-by-city systems). Not included here; the real issuer would call it. |
+| **Tomador** | The customer on the invoice (the one who "takes" the service). |
+| **Competência** | The month the service was provided; it defines which month the service tax (ISS) belongs to. |
+| **LGPD** | Brazil's data-protection law (similar to the EU's GDPR). The bot warns the customer before asking for the CPF. |
+| **WhatsApp Cloud API** | Meta's official API for business WhatsApp numbers. |
+
+## How to run
 
 ```
 python -m venv .venv
 .venv\Scripts\python -m pip install -r requirements.txt
-.venv\Scripts\python -m app.demo                      # dados fictícios da última semana
+.venv\Scripts\python -m app.demo                      # fictitious data for the last week
 .venv\Scripts\python -m uvicorn app.main:app          # http://localhost:8000
-.venv\Scripts\python -m pytest -q                     # 17 testes
+.venv\Scripts\python -m pytest -q                     # 17 tests
 ```
 
-Roteiro de demonstração: **Simulador WhatsApp** (agendar como cliente) → **Configurações** (mudar preço/desconto e ver o efeito)
-→ **Atendimento** (assumir uma conversa) → **Fechamento** (confirmar e emitir) → **Notas**.
+Demo script: **Simulador WhatsApp** (book as a customer) → **Configurações** (change a price or discount and see the
+effect) → **Atendimento** (take over a chat) → **Fechamento** (confirm and issue) → **Notas**.
+The interface is in Portuguese because the product is meant for a Brazilian business.
 
-Variáveis opcionais em [.env.example](.env.example): `ANTHROPIC_API_KEY` (IA), `ADMIN_PASSWORD` (painel),
-`WHATSAPP_*` (Cloud API da Meta), `SMTP_*` (lembrete por e-mail).
+Optional variables in [.env.example](.env.example): `ANTHROPIC_API_KEY` (AI), `ADMIN_PASSWORD` (dashboard),
+`WHATSAPP_*` (Meta Cloud API), `SMTP_*` (e-mail reminder).
 
-## Estrutura
+## Structure
 
-| Arquivo | Papel |
+Module names are in Portuguese, the domain language of the project (`regras` = rules, `fechamento` = closing,
+`conversas` = conversations, `agente` = agent).
+
+| File | Role |
 |---|---|
-| `app/regras.py` | CPF, disponibilidade, preço, desconto, reserva (determinístico) |
-| `app/agente.py`, `app/ferramentas.py` | agente Claude + ferramentas; roteiro sem IA |
-| `app/conversas.py` | histórico, modo bot/humano, fluxo do dono |
-| `app/fechamento.py` | lista numerada, leitura da resposta, emissão em lote |
-| `app/fiscal/` | interface `Emissor`, emissor simulado, exportação de planilha |
-| `app/whatsapp.py`, `app/main.py` | canal WhatsApp (simulador / Cloud API) e painel web |
-| `tests/` | 17 testes: regras, conversa, fechamento, lote com falha, painel, webhook |
+| `app/regras.py` | CPF, availability, price, discount, booking (deterministic) |
+| `app/agente.py`, `app/ferramentas.py` | Claude agent + tools; no-AI script |
+| `app/conversas.py` | history, bot/human mode, owner flow |
+| `app/fechamento.py` | numbered list, reply parsing, batch issuing |
+| `app/fiscal/` | `Emissor` interface, simulated issuer, spreadsheet export |
+| `app/whatsapp.py`, `app/main.py` | WhatsApp channel (simulator / Cloud API) and web dashboard |
+| `tests/` | 17 tests: rules, chat, closing, batch with a failure, dashboard, webhook |
 
-## Limites conhecidos
+## Known limitations
 
-- Integração real com a Cloud API da Meta e o assistente com IA estão implementados, mas **não foram testados contra os serviços reais**
-  (os testes cobrem o roteiro e todas as ferramentas que a IA usa).
-- Emissão fiscal real (Emissor Nacional de NFS-e, certificado A1) não está incluída.
-- Sem multiusuário, pagamentos online, mensalistas ou cadastro de pessoa jurídica.
+- The real Meta Cloud API integration and the AI assistant are implemented but **not tested against the real services**
+  (the tests cover the menu script and every tool the AI uses).
+- Real invoice issuing (national NFS-e system, company digital certificate) is not included.
+- No multi-user support, online payments, recurring bookings or company (CNPJ) customers.
 
 ## Stack
 
 Python · FastAPI · SQLite · Jinja2 · Anthropic API (tool use) · WhatsApp Cloud API · pytest
 
-## Licença
+## License
 
-Todos os direitos reservados ([LICENSE](LICENSE)). O código está publicado apenas para visualização e avaliação; não pode ser copiado, usado ou vendido sem autorização por escrito da autora.
+All rights reserved ([LICENSE](LICENSE)). The code is published for viewing and evaluation only; it may not be copied,
+used or sold without the author's written permission.

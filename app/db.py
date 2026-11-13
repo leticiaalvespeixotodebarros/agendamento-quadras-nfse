@@ -1,7 +1,7 @@
-"""Banco SQLite do MVP: esquema, acesso e dados de exemplo.
+"""SQLite database of the MVP: schema, access and sample data.
 
-Os dados de exemplo (3 quadras, preços e descontos) são FICTÍCIOS, só para a demonstração.
-Em uso real, tudo é editado pelo painel (aba Configurações).
+The sample data (3 courts, prices and discounts) is FICTITIOUS, for the demo only.
+In real use, everything is edited through the dashboard ("Configurações" tab).
 """
 from __future__ import annotations
 
@@ -19,12 +19,12 @@ CREATE TABLE IF NOT EXISTS config (chave TEXT PRIMARY KEY, valor TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS quadras (
   id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL, ativa INTEGER NOT NULL DEFAULT 1);
 
--- dias: lista de 0 (segunda) a 6 (domingo) separada por vírgula; horas inteiras [hora_ini, hora_fim)
+-- dias: comma-separated list from 0 (Monday) to 6 (Sunday); whole hours [hora_ini, hora_fim)
 CREATE TABLE IF NOT EXISTS precos (
   id INTEGER PRIMARY KEY AUTOINCREMENT, descricao TEXT NOT NULL, dias TEXT NOT NULL,
   hora_ini INTEGER NOT NULL, hora_fim INTEGER NOT NULL, valor_hora REAL NOT NULL);
 
--- tipo: percentual | fixo (R$ por hora). codigo vazio = automático quando atingir min_horas
+-- tipo: percentual | fixo (R$ per hour). empty codigo = automatic once min_horas is reached
 CREATE TABLE IF NOT EXISTS descontos (
   id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL, tipo TEXT NOT NULL,
   valor REAL NOT NULL, min_horas INTEGER NOT NULL DEFAULT 1, codigo TEXT NOT NULL DEFAULT '',
@@ -74,11 +74,11 @@ CONFIG_PADRAO = {
     "empresa_razao": "ESPACO ESPORTIVO EXEMPLO LTDA",
     "empresa_cnpj": "00.000.000/0001-00",
     "endereco": "Cidade/UF (endereço completo a preencher)",
-    "abertura": "8",                      # hora de abertura
-    "fechamento_hora": "23",              # última hora de término
+    "abertura": "8",                      # opening hour
+    "fechamento_hora": "23",              # last end hour
     "antecedencia_max_dias": "30",
     "dono_nome": "Sócio",
-    "dono_telefone": "5511900000001",     # telefone do dono (autoriza fechamento por WhatsApp)
+    "dono_telefone": "5511900000001",     # owner's phone (authorizes closing by WhatsApp)
     "dono_email": "",
     "descricao_servico": "Locação de quadra poliesportiva",
     "politica_cancelamento": "Cancelamentos com pelo menos 24 horas de antecedência, sem custo.",

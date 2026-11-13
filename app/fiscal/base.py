@@ -6,19 +6,19 @@ from typing import Protocol
 
 
 class ErroEmissao(Exception):
-    """Falha ao emitir uma nota (a nota é pulada e registrada; o lote continua)."""
+    """Failure to issue an invoice (it is skipped and logged; the batch continues)."""
 
 
 @dataclass(frozen=True)
 class DadosNota:
     agendamento_id: int
     tomador_nome: str
-    tomador_cpf: str            # só dígitos
+    tomador_cpf: str            # digits only
     tomador_telefone: str
     descricao: str
     valor: float
     data_locacao: date
-    competencia: date           # data da locação (competência do ISS)
+    competencia: date           # rental date (ISS service-tax competence month)
 
 
 @dataclass(frozen=True)

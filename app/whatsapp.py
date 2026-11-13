@@ -1,8 +1,8 @@
-"""Canal WhatsApp.
+"""WhatsApp channel.
 
-* Simulador (padrão): `enviar` não envia nada; a mensagem já fica gravada e aparece no painel.
-* Real (WhatsApp Cloud API da Meta): ligue definindo WHATSAPP_TOKEN e WHATSAPP_PHONE_ID.
-  ATENÇÃO: o trecho real NÃO foi testado contra a Meta (depende de conta/número aprovados).
+* Simulator (default): `enviar` sends nothing; the message is already stored and shown in the dashboard.
+* Real (Meta WhatsApp Cloud API): turn on by setting WHATSAPP_TOKEN and WHATSAPP_PHONE_ID.
+  WARNING: the real part was NOT tested against Meta (it needs an approved account/number).
 """
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def enviar(telefone: str, texto: str) -> None:
 
 
 def extrair_mensagens(payload: dict) -> list[tuple[str, str]]:
-    """(telefone, texto) das mensagens de TEXTO do webhook da Meta. Outros tipos (áudio, imagem) são ignorados."""
+    """(phone, text) of the TEXT messages in the Meta webhook. Other types (audio, image) are ignored."""
     out = []
     for entry in payload.get("entry", []):
         for ch in entry.get("changes", []):

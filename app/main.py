@@ -1,7 +1,7 @@
-"""Aplicação web: painel do dono/atendente, simulador de WhatsApp e webhook da Meta.
+"""Web app: owner/agent dashboard, WhatsApp simulator and Meta webhook.
 
-Rodar:  .venv\\Scripts\\python -m uvicorn app.main:app --reload
-Senha do painel: variável ADMIN_PASSWORD (usuário "admin"). Sem ela, o painel fica aberto (só para uso local).
+Run:  .venv\\Scripts\\python -m uvicorn app.main:app --reload
+Dashboard password: ADMIN_PASSWORD variable (user "admin"). Without it, the dashboard is open (local use only).
 """
 from __future__ import annotations
 
@@ -56,7 +56,7 @@ def voltar(rota: str, msg: str = "") -> RedirectResponse:
     return RedirectResponse(rota + (f"?msg={quote(msg)}" if msg else ""), status_code=303)
 
 
-# ---------------- painel ----------------
+# ---------------- dashboard ----------------
 @app.get("/", response_class=HTMLResponse, dependencies=[Depends(login)])
 def painel(request: Request, msg: str = ""):
     h = relogio.hoje().isoformat()
@@ -73,7 +73,7 @@ def painel(request: Request, msg: str = ""):
     return pagina(request, "painel.html", resumo=resumo, msg=msg)
 
 
-# ---------------- simulador de WhatsApp ----------------
+# ---------------- WhatsApp simulator ----------------
 @app.get("/simulador", response_class=HTMLResponse, dependencies=[Depends(login)])
 def simulador(request: Request):
     return pagina(request, "simulador.html", dono=regras.so_digitos(db.config()["dono_telefone"]))
@@ -90,7 +90,7 @@ def sim_enviar(telefone: str = Form(...), texto: str = Form(...)):
     return {"ok": True}
 
 
-# ---------------- agenda ----------------
+# ---------------- schedule ----------------
 @app.get("/agenda", response_class=HTMLResponse, dependencies=[Depends(login)])
 def agenda(request: Request, data: str = "", msg: str = ""):
     d = date.fromisoformat(data) if data else relogio.hoje()
@@ -122,7 +122,7 @@ def agenda_cancelar(ag_id: int):
     return voltar(f"/agenda?data={ag['data']}", "Reserva cancelada.")
 
 
-# ---------------- configurações (preços, descontos, quadras, textos) ----------------
+# ---------------- settings (prices, discounts, courts, texts) ----------------
 @app.get("/config", response_class=HTMLResponse, dependencies=[Depends(login)])
 def config_get(request: Request, msg: str = ""):
     with db.conexao() as c:
@@ -215,7 +215,7 @@ def quadra_alternar(qid: int):
     return voltar("/config")
 
 
-# ---------------- fechamento e notas ----------------
+# ---------------- closing and invoices ----------------
 @app.get("/fechamento", response_class=HTMLResponse, dependencies=[Depends(login)])
 def fechamento_get(request: Request, msg: str = ""):
     fid = fechamento.gerar()
@@ -258,7 +258,7 @@ def notas_exportar():
                     media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
-# ---------------- caixa de entrada (atendente) ----------------
+# ---------------- inbox (human agent) ----------------
 @app.get("/inbox", response_class=HTMLResponse, dependencies=[Depends(login)])
 def inbox(request: Request, tel: str = ""):
     convs = conversas.lista_conversas()
@@ -281,7 +281,7 @@ def inbox_devolver(tel: str):
     return voltar(f"/inbox?tel={tel}")
 
 
-# ---------------- webhook da Meta (WhatsApp Cloud API) ----------------
+# ---------------- Meta webhook (WhatsApp Cloud API) ----------------
 @app.get("/webhook")
 def webhook_verificar(request: Request):
     q = request.query_params
@@ -295,7 +295,7 @@ def webhook_verificar(request: Request):
 async def webhook_receber(request: Request):
     corpo = await request.body()
     segredo = os.environ.get("WHATSAPP_APP_SECRET")
-    if segredo:                                      # assinatura da Meta: impede que terceiros injetem mensagens
+    if segredo:                                      # Meta signature: stops third parties from injecting messages
         import hashlib
         import hmac
         esperado = "sha256=" + hmac.new(segredo.encode(), corpo, hashlib.sha256).hexdigest()
@@ -306,7 +306,7 @@ async def webhook_receber(request: Request):
     for tel, texto in whatsapp.extrair_mensagens(payload):
         try:
             conversas.processar(tel, texto)
-        except Exception:                            # noqa: BLE001 - um erro não derruba as demais mensagens
+        except Exception:                            # noqa: BLE001 - one error does not drop the other messages
             import traceback
             traceback.print_exc()
-    return JSONResponse({"ok": True})   # a Meta exige 200 rápido, senão reenvia
+    return JSONResponse({"ok": True})   # Meta requires a fast 200, otherwise it resends

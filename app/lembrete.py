@@ -1,8 +1,8 @@
-"""Lembrete semanal por e-mail ao dono: "há N locações para confirmar".
+"""Weekly e-mail reminder to the owner: "there are N rentals to confirm".
 
-Sem SMTP configurado, o e-mail é gravado em dados/outbox/ (a demonstração mostra o texto).
-Agendar toda semana:  python -m app.lembrete   (Agendador de Tarefas do Windows).
-Variáveis: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM, PAINEL_URL.
+Without SMTP configured, the e-mail is written to dados/outbox/ (the demo shows the text).
+Schedule weekly:  python -m app.lembrete   (Windows Task Scheduler).
+Variables: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM, PAINEL_URL.
 """
 from __future__ import annotations
 

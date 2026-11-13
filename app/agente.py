@@ -1,7 +1,7 @@
-"""Agente de conversa.
+"""Conversation agent.
 
-* Com ANTHROPIC_API_KEY: Claude conversa em linguagem natural e chama as ferramentas (app/ferramentas.py).
-* Sem chave: roteiro guiado por menu (demonstra o fluxo completo, sem IA). Serve também de plano B.
+* With ANTHROPIC_API_KEY: Claude talks in natural language and calls the tools (app/ferramentas.py).
+* Without a key: a menu-guided script (shows the whole flow without AI). Also works as a fallback.
 """
 from __future__ import annotations
 
@@ -83,14 +83,14 @@ def _com_claude(tel: str) -> list[str]:
                     resultados.append({"type": "tool_result", "tool_use_id": b.id,
                                        "content": json.dumps(out, ensure_ascii=False)})
             msgs.append({"role": "user", "content": resultados})
-    except Exception:                                  # noqa: BLE001 - falha da IA nunca deixa o cliente sem resposta
+    except Exception:                                  # noqa: BLE001 - an AI failure never leaves the customer without an answer
         conversas.passar_para_humano(tel, "Falha técnica do assistente")
         return ["Desculpe, tive um problema aqui. Já chamei um atendente para continuar com você. 🙏"]
     conversas.passar_para_humano(tel, "Assistente não concluiu o atendimento")
     return ["Vou chamar um atendente para te ajudar melhor, só um instante. 🙏"]
 
 
-# ======================= Roteiro guiado (sem IA) =======================
+# ======================= Guided script (no AI) =======================
 MENU = ("Olá! Sou a assistente da {nome}. 🏐 O que você quer fazer?\n"
         "1) Agendar uma quadra\n2) Ver preços\n3) Meus agendamentos\n4) Falar com um atendente")
 

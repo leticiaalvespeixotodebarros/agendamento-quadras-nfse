@@ -1,4 +1,4 @@
-"""Relógio central (fuso de Brasília). Os testes trocam por um horário fixo."""
+"""Central clock (Brasília time zone). Tests replace it with a fixed time."""
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone

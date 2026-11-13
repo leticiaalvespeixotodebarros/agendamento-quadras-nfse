@@ -5,7 +5,7 @@ import pytest
 from app import db, regras
 from conftest import CLIENTE, CPF_OK
 
-SEG, SAB = date(2026, 11, 18), date(2026, 11, 21)    # quarta e sábado
+SEG, SAB = date(2026, 11, 18), date(2026, 11, 21)    # Wednesday and Saturday
 
 
 def test_cpf():

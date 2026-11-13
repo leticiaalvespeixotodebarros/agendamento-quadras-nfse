@@ -1,8 +1,8 @@
-"""Popula o banco com locações FICTÍCIAS da última semana, para a apresentação mostrar o fechamento.
+"""Populates the database with FICTITIOUS rentals from the last week, so the demo can show the closing.
 
-  python -m app.demo          (zera o banco de demonstração e recria os dados)
+  python -m app.demo          (resets the demo database and recreates the data)
 
-Nomes e CPFs são inventados (CPFs gerados só com dígitos verificadores corretos). Não use com dados reais.
+Names and CPFs are invented (CPFs are generated with valid check digits only). Do not use with real data.
 """
 from __future__ import annotations
 
@@ -45,7 +45,7 @@ def popular() -> int:
                  _cpf_ficticio(i), o.bruto, o.desconto, o.total, o.desconto_nome, "whatsapp",
                  (relogio.agora() - timedelta(days=8)).isoformat(timespec="seconds")))
             n += 1
-        # duas reservas futuras para a agenda não ficar vazia
+        # two future bookings so the schedule is not empty
         for k, nome in enumerate(("Beatriz Andrade Lemos", "Gustavo Farias Neto")):
             dia = hoje + timedelta(days=2 + k)
             o = regras.orcar(dia, 19, 2)

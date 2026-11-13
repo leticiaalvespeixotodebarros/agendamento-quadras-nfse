@@ -1,6 +1,7 @@
-"""Ferramentas que o agente de IA pode chamar. Cada uma devolve um dicionário simples (vira JSON para o modelo).
+"""Tools the AI agent can call. Each returns a simple dictionary (turned into JSON for the model).
 
-O telefone do cliente vem do WhatsApp (nunca é perguntado) e é fixado aqui, fora do controle do modelo.
+The customer's phone number comes from WhatsApp (it is never asked) and is fixed here, outside the model's control.
+(The tool descriptions below stay in Portuguese: they are prompts for a Portuguese-speaking assistant.)
 """
 from __future__ import annotations
 

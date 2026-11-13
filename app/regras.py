@@ -1,6 +1,6 @@
-"""Regras de negócio determinísticas: CPF, disponibilidade, preço, desconto e criação de reserva.
+"""Deterministic business rules: CPF, availability, price, discount and booking creation.
 
-O agente de conversa NUNCA calcula preço nem decide disponibilidade: ele chama estas funções.
+The conversation agent NEVER calculates prices or decides availability: it calls these functions.
 """
 from __future__ import annotations
 
@@ -14,10 +14,10 @@ DIAS = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
 
 
 class ErroRegra(Exception):
-    """Erro de regra de negócio com mensagem apresentável ao cliente."""
+    """Business-rule error with a message that can be shown to the customer."""
 
 
-# ---------- CPF / telefone / formatação ----------
+# ---------- CPF / phone / formatting ----------
 def so_digitos(s: str) -> str:
     return re.sub(r"\D", "", s or "")
 
@@ -49,7 +49,7 @@ def fmt_data(d: str | date) -> str:
 
 
 def interpretar_data(txt: str) -> date:
-    """Aceita AAAA-MM-DD ou DD/MM[/AAAA]."""
+    """Accepts YYYY-MM-DD or DD/MM[/YYYY]."""
     t = txt.strip()
     try:
         if re.fullmatch(r"\d{4}-\d{2}-\d{2}", t):
@@ -68,7 +68,7 @@ def interpretar_data(txt: str) -> date:
     raise ErroRegra(f"Não entendi a data “{txt}”. Use o formato DD/MM (ex.: 25/11).")
 
 
-# ---------- Quadras e disponibilidade ----------
+# ---------- Courts and availability ----------
 def quadras_ativas() -> list[dict]:
     with db.conexao() as c:
         return [dict(r) for r in c.execute("SELECT * FROM quadras WHERE ativa = 1 ORDER BY id")]
@@ -79,7 +79,7 @@ def _limites(cfg: dict) -> tuple[int, int]:
 
 
 def horas_livres(data: date) -> dict[int, list[int]]:
-    """{quadra_id: [horas de início livres]} — já exclui horários passados do dia de hoje."""
+    """{quadra_id: [free start hours]} — already excludes past hours of today."""
     cfg = db.config()
     ab, fe = _limites(cfg)
     agora = relogio.agora()
@@ -114,7 +114,7 @@ def resumo_disponibilidade(data: date) -> list[dict]:
             for qid, h in horas_livres(data).items()]
 
 
-# ---------- Preço e desconto ----------
+# ---------- Price and discount ----------
 @dataclass
 class Orcamento:
     horas: int
@@ -158,7 +158,7 @@ def orcar(data: date, hora_ini: int, horas: int, cupom: str = "") -> Orcamento:
     return Orcamento(horas, round(bruto, 2), melhor, melhor_nome, avisos)
 
 
-# ---------- Reservas ----------
+# ---------- Bookings ----------
 def criar_agendamento(*, telefone: str, nome: str, cpf: str, data: date, hora_ini: int, horas: int,
                       quadra_id: int | None = None, cupom: str = "", origem: str = "whatsapp") -> dict:
     nome = " ".join((nome or "").split())
@@ -184,7 +184,7 @@ def criar_agendamento(*, telefone: str, nome: str, cpf: str, data: date, hora_in
         raise ErroRegra("Esse horário não está mais disponível.")
     o = orcar(data, hora_ini, horas, cupom)
     with db.conexao() as c:
-        # revalida dentro da transação (evita duas reservas simultâneas no mesmo horário)
+        # re-check inside the transaction (prevents two simultaneous bookings for the same slot)
         c.execute("BEGIN IMMEDIATE") if not c.in_transaction else None
         conflito = c.execute(
             "SELECT 1 FROM agendamentos WHERE quadra_id = ? AND data = ? AND status IN ('agendado','confirmado') "

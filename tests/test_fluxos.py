@@ -1,4 +1,4 @@
-"""Fluxos completos: conversa → agendamento → fechamento do dono → notas."""
+"""End-to-end flows: chat → booking → owner closing → invoices."""
 from datetime import date, datetime
 
 import pytest

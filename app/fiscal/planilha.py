@@ -1,7 +1,8 @@
-"""Exporta as locações confirmadas numa planilha de emissão em lote (colunas padrão).
+"""Exports confirmed rentals to a batch-issuing spreadsheet (standard columns).
 
-É a ponte para a emissão REAL enquanto o emissor automático não está ligado: o responsável pela emissão
-rodará o emissor com este arquivo. Endereço do tomador fica em branco (pessoa física não exige no Nacional).
+It is the bridge to REAL issuing while the automatic issuer is not connected: the person responsible
+for issuing runs the issuer with this file. The customer's address is left blank (individuals
+do not require one in the national system). Column headers stay in Portuguese: they match the issuer's format.
 """
 from __future__ import annotations
 

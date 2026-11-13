@@ -1,8 +1,8 @@
-"""Fechamento: lista numerada das locações para o dono confirmar, leitura da resposta e emissão das notas.
+"""Closing ("fechamento"): numbered list of rentals for the owner to confirm, reading the reply, issuing the invoices.
 
-Regra de ouro: quem decide o que aconteceu é o dono. O sistema só registra a decisão e emite
-as notas das locações que ele confirmou. Itens com erro na emissão são pulados e registrados;
-os demais continuam (regra do lote sem interrupção).
+Golden rule: the owner decides what happened. The system only records the decision and issues
+invoices for the rentals the owner confirmed. Items that fail to issue are skipped and logged;
+the rest continue (uninterrupted-batch rule).
 """
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from .fiscal import DadosNota, ErroEmissao, emissor_padrao
 
 
 class ErroResposta(Exception):
-    """A resposta do dono não pôde ser entendida; a mensagem explica o que enviar."""
+    """The owner's reply could not be understood; the message explains what to send."""
 
 
 def _elegiveis(c) -> list:
@@ -27,7 +27,7 @@ def _elegiveis(c) -> list:
 
 
 def gerar() -> int | None:
-    """Cria (ou atualiza) o fechamento aberto. Devolve o id, ou None se não há nada a confirmar."""
+    """Create (or update) the open closing. Returns its id, or None if there is nothing to confirm."""
     with db.conexao() as c:
         aberto = c.execute("SELECT id FROM fechamentos WHERE status = 'aberto' ORDER BY id DESC LIMIT 1").fetchone()
         elegiveis = _elegiveis(c)
@@ -49,7 +49,7 @@ def gerar() -> int | None:
 
 
 def itens(fid: int, so_pendentes: bool = True) -> list[dict]:
-    """Itens do fechamento com os dados da locação."""
+    """Closing items with the rental data."""
     filtro = "AND a.status = 'agendado' " if so_pendentes else ""
     with db.conexao() as c:
         return [dict(r) for r in c.execute(
@@ -87,13 +87,13 @@ def texto_lista(fid: int) -> str:
     return "\n".join(linhas)
 
 
-# ---------- leitura da resposta do dono ----------
+# ---------- reading the owner's reply ----------
 _CONFIRMA = re.compile(r"\b(ok|okay|concordo|confirmo|confirmado|confirmar|tudo certo|certo|sim)\b", re.I)
 _EXCETO = re.compile(r"\b(menos|exceto|except[oa]|tirando|sem|nao|não)\b", re.I)
 
 
 def interpretar_resposta(texto: str, numeros: list[int]) -> set[int]:
-    """Devolve o conjunto de números EXCLUÍDOS (não confirmados). Levanta ErroResposta se ambíguo."""
+    """Return the set of EXCLUDED numbers (not confirmed). Raises ErroResposta if ambiguous."""
     t = texto.strip()
     if not _CONFIRMA.search(t):
         raise ErroResposta("Não entendi. Responda *OK* para confirmar todas, ou *OK menos 3 e 7* "
@@ -159,7 +159,7 @@ def concluir(fid: int, excluidos: set[int], emissor=None) -> Resultado:
 
 
 def reemitir_com_erro(emissor=None) -> Resultado:
-    """Nova tentativa das notas que falharam antes (agendamento confirmado sem nota emitida)."""
+    """Retry the invoices that failed before (confirmed booking without an issued invoice)."""
     res = Resultado()
     with db.conexao() as c:
         ids = [r[0] for r in c.execute(
@@ -171,7 +171,7 @@ def reemitir_com_erro(emissor=None) -> Resultado:
 
 def _emitir_pendentes(emissor, res: Resultado, ag_ids: list[int]) -> None:
     desc = db.config()["descricao_servico"]
-    for ag_id in ag_ids:                              # um erro NUNCA interrompe o lote
+    for ag_id in ag_ids:                              # an error NEVER stops the batch
         ag = regras.detalhe_agendamento(ag_id)
         comp = date.fromisoformat(ag["data"])
         try:
@@ -181,7 +181,7 @@ def _emitir_pendentes(emissor, res: Resultado, ag_ids: list[int]) -> None:
                 valor=ag["valor"], data_locacao=comp, competencia=comp))
             _gravar_nota(ag_id, ag["valor"], comp, r.numero, r.chave, r.ambiente, "emitida", "")
             res.notas_emitidas += 1
-        except Exception as e:                        # noqa: BLE001 - registra e segue para a próxima
+        except Exception as e:                        # noqa: BLE001 - log it and go on to the next one
             _gravar_nota(ag_id, ag["valor"], comp, None, None, getattr(emissor, "ambiente", "?"), "erro", str(e))
             res.falhas.append(f"{ag['nome']} ({comp.strftime('%d/%m')}): {e}")
 
